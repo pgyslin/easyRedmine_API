@@ -1,362 +1,125 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tableau de bord · easyRedmine</title>
-    <style>
-        :root {
-            --bg: #f4f7fc;
-            --card: #ffffff;
-            --primary: #2563eb;
-            --primary-light: #dbeafe;
-            --primary-dark: #1e40af;
-            --text: #1e293b;
-            --muted: #64748b;
-            --border: #e2e8f0;
-            --green: #16a34a;
-            --amber: #d97706;
-            --red: #dc2626;
-            --shadow: 0 1px 3px rgba(15,23,42,.08), 0 1px 2px rgba(15,23,42,.04);
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            line-height: 1.5;
-        }
-
-        header {
-            background: linear-gradient(120deg, var(--primary), var(--primary-dark));
-            color: #fff;
-            padding: 1.6rem 2rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-            header h1 {
-                font-size: 1.4rem;
-                display: flex;
-                align-items: center;
-                gap: .6rem;
-            }
-
-            header .logo {
-                background: rgba(255,255,255,.2);
-                width: 36px;
-                height: 36px;
-                border-radius: 8px;
-                display: grid;
-                place-items: center;
-                font-weight: 700;
-            }
-
-        .stats {
-            display: flex;
-            gap: 1.5rem;
-            font-size: .85rem;
-        }
-
-            .stats div {
-                text-align: center;
-            }
-
-            .stats strong {
-                display: block;
-                font-size: 1.5rem;
-            }
-
-        main {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 2rem 1.5rem;
-        }
-
-        .toolbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 1.5rem;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-            .toolbar h2 {
-                font-size: 1.15rem;
-                color: var(--primary-dark);
-            }
-
-        .search {
-            border: 1px solid var(--border);
-            background: #fff;
-            border-radius: 8px;
-            padding: .55rem .9rem;
-            font-size: .9rem;
-            width: 240px;
-            outline: none;
-        }
-
-            .search:focus {
-                border-color: var(--primary);
-                box-shadow: 0 0 0 3px var(--primary-light);
-            }
-
-        .agent-card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            box-shadow: var(--shadow);
-            margin-bottom: 1.2rem;
-            overflow: hidden;
-        }
-
-        .agent-head {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 1.1rem 1.4rem;
-            border-bottom: 1px solid var(--border);
-            background: linear-gradient(0deg, #fbfdff, #fff);
-        }
-
-        .avatar {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: var(--primary-light);
-            color: var(--primary-dark);
-            font-weight: 700;
-            display: grid;
-            place-items: center;
-            font-size: 1rem;
-        }
-
-        .agent-info h3 {
-            font-size: 1rem;
-        }
-
-        .agent-info span {
-            font-size: .82rem;
-            color: var(--muted);
-        }
-
-        .agent-meta {
-            margin-left: auto;
-            text-align: right;
-            font-size: .8rem;
-            color: var(--muted);
-        }
-
-        .badge-count {
-            background: var(--primary);
-            color: #fff;
-            border-radius: 999px;
-            padding: .2rem .7rem;
-            font-size: .78rem;
-            font-weight: 600;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th, td {
-            text-align: left;
-            padding: .75rem 1.4rem;
-            font-size: .88rem;
-        }
-
-        th {
-            color: var(--muted);
-            font-weight: 600;
-            font-size: .75rem;
-            text-transform: uppercase;
-            letter-spacing: .03em;
-            background: #f8fafc;
-        }
-
-        tbody tr {
-            border-top: 1px solid var(--border);
-        }
-
-            tbody tr:hover {
-                background: #f8fbff;
-            }
-
-        .mission-id {
-            font-family: 'Consolas', monospace;
-            color: var(--primary);
-            font-weight: 600;
-        }
-
-        .status {
-            display: inline-block;
-            padding: .2rem .65rem;
-            border-radius: 6px;
-            font-size: .76rem;
-            font-weight: 600;
-        }
-
-        .s-progress {
-            background: #dbeafe;
-            color: var(--primary-dark);
-        }
-
-        .s-done {
-            background: #dcfce7;
-            color: var(--green);
-        }
-
-        .s-pending {
-            background: #fef3c7;
-            color: var(--amber);
-        }
-
-        .s-late {
-            background: #fee2e2;
-            color: var(--red);
-        }
-
-        .prio {
-            font-weight: 600;
-        }
-
-        .p-high {
-            color: var(--red);
-        }
-
-        .p-med {
-            color: var(--amber);
-        }
-
-        .p-low {
-            color: var(--muted);
-        }
-
-        .bar {
-            height: 6px;
-            background: var(--border);
-            border-radius: 999px;
-            overflow: hidden;
-            width: 90px;
-        }
-
-            .bar i {
-                display: block;
-                height: 100%;
-                background: var(--primary);
-                border-radius: 999px;
-            }
-
-        footer {
-            text-align: center;
-            color: var(--muted);
-            font-size: .8rem;
-            padding: 1.5rem;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tableau de bord · InterScience</title>
+<style>
+  :root {
+    --bg: #f4f7fc; --card: #fff; --primary: #2563eb; --primary-light: #dbeafe;
+    --primary-dark: #1e40af; --text: #1e293b; --muted: #64748b; --border: #e2e8f0;
+    --green: #16a34a; --amber: #d97706; --red: #dc2626;
+    --shadow: 0 1px 3px rgba(15,23,42,.08), 0 1px 2px rgba(15,23,42,.04);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
+  header {
+    background: linear-gradient(120deg, var(--primary), var(--primary-dark));
+    color: #fff; padding: 1.6rem 2rem; display: flex; align-items: center;
+    justify-content: space-between; flex-wrap: wrap; gap: 1rem;
+  }
+  header h1 { font-size: 1.4rem; display: flex; align-items: center; gap: .6rem; }
+  header .logo { background: rgba(255,255,255,.2); width: 36px; height: 36px; border-radius: 8px; display: grid; place-items: center; font-weight: 700; }
+  .stats { display: flex; gap: 1.5rem; font-size: .85rem; }
+  .stats div { text-align: center; }
+  .stats strong { display: block; font-size: 1.5rem; }
+  main { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+  .toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+  .toolbar h2 { font-size: 1.15rem; color: var(--primary-dark); }
+  .agent-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 1.2rem; overflow: hidden; }
+  .agent-head { display: flex; align-items: center; gap: 1rem; padding: 1.1rem 1.4rem; border-bottom: 1px solid var(--border); background: linear-gradient(0deg, #fbfdff, #fff); }
+  .avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--primary-light); color: var(--primary-dark); font-weight: 700; display: grid; place-items: center; }
+  .agent-info h3 { font-size: 1rem; }
+  .agent-info span { font-size: .82rem; color: var(--muted); }
+  .badge-count { margin-left: auto; background: var(--primary); color: #fff; border-radius: 999px; padding: .2rem .7rem; font-size: .78rem; font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: .75rem 1.4rem; font-size: .88rem; }
+  th { color: var(--muted); font-weight: 600; font-size: .75rem; text-transform: uppercase; letter-spacing: .03em; background: #f8fafc; }
+  tbody tr { border-top: 1px solid var(--border); }
+  tbody tr:hover { background: #f8fbff; }
+  .mission-id { font-family: 'Consolas', monospace; color: var(--primary); font-weight: 600; }
+  .status { display: inline-block; padding: .2rem .65rem; border-radius: 6px; font-size: .76rem; font-weight: 600; background: #dbeafe; color: var(--primary-dark); }
+  .bar { height: 6px; background: var(--border); border-radius: 999px; overflow: hidden; width: 90px; }
+  .bar i { display: block; height: 100%; background: var(--primary); border-radius: 999px; }
+  .state { text-align: center; padding: 3rem; color: var(--muted); }
+  .error { background: #fee2e2; color: var(--red); border: 1px solid var(--red); border-radius: 8px; padding: 1rem; }
+</style>
 </head>
 <body>
-    <header>
-        <h1><span class="logo">eR</span> Tableau de bord</h1>
-        <div class="stats">
-            <div><strong>2</strong>Agents</div>
-            <div><strong>3</strong>Missions</div>
-            <!-- Possibilité de rajouter des indications -->
+  <header>
+    <h1><span class="logo">eR</span> Tableau de bord</h1>
+    <div class="stats">
+      <div><strong id="stat-agents">–</strong>Agents</div>
+      <div><strong id="stat-missions">–</strong>Missions</div>
+    </div>
+  </header>
+
+  <main>
+    <div class="toolbar">
+      <h2>Agents &amp; missions assignées</h2>
+    </div>
+    <div id="content"><div class="state">Chargement des données…</div></div>
+  </main>
+
+<script>
+const STATUTS = { 'New': 's-pending', 'Nouveau': 's-pending', 'In Progress': 's-progress', 'Résolu': 's-done' };
+
+function initiales(nom) {
+  return nom.split(' ').map(m => m[0]).slice(0, 2).join('').toUpperCase();
+}
+
+function ligneMission(m) {
+  const echeance = m.echeance ? new Date(m.echeance).toLocaleDateString('fr-FR', {day:'2-digit', month:'2-digit'}) : '—';
+  return `
+    <tr>
+      <td class="mission-id">#${m.id}</td>
+      <td>${m.sujet}</td>
+      <td>${m.priorite}</td>
+      <td><div class="bar"><i style="width:${m.avancement}%"></i></div></td>
+      <td>${echeance}</td>
+      <td><span class="status">${m.statut}</span></td>
+    </tr>`;
+}
+
+function carteAgent(a) {
+  return `
+    <div class="agent-card">
+      <div class="agent-head">
+        <div class="avatar">${initiales(a.nom)}</div>
+        <div class="agent-info">
+          <h3>${a.nom}</h3>
+          <span>${a.email || ''}</span>
         </div>
-    </header>
+        <span class="badge-count">${a.nb} mission${a.nb > 1 ? 's' : ''}</span>
+      </div>
+      <table>
+        <thead><tr><th>Réf.</th><th>Mission</th><th>Priorité</th><th>Avancement</th><th>Échéance</th><th>Statut</th></tr></thead>
+        <tbody>${a.missions.map(ligneMission).join('')}</tbody>
+      </table>
+    </div>`;
+}
 
-    <main>
-        <div class="toolbar">
-            <h2>Agents &amp; missions assignées</h2>
-            <input class="search" type="text" placeholder="Rechercher un agent…">
-        </div>
+async function charger() {
+  const content = document.getElementById('content');
+  try {
+    const resp = await fetch('api-dashboard.php');
+    const data = await resp.json();
 
+    if (!data.success) throw new Error(data.error || 'Erreur inconnue');
 
+    const agents = data.agents;
+    document.getElementById('stat-agents').textContent = agents.length;
+    document.getElementById('stat-missions').textContent = agents.reduce((t, a) => t + a.nb, 0);
 
-        <div class="agent-card">
-            <div class="agent-head">
-                <div class="avatar">A-1</div>
-                <div class="agent-info">
-                    <h3>Agent 1</h3>
-                    <span>Développeur</span>
-                </div>
-                <div class="agent-meta">
-                    <span class="badge-count">2 missions</span><br>
-                    <small>Charge : 35h/semaine</small>
-                </div>
-            </div>
-            <table>
-                <!-- Statuts de missions possibles : s-done, s-pending, s-late, s-progress -->
-                <!-- Statuts de prioritées possibles : p-high, p-med, p-low --> 
-                <thead>
-                    <tr><th>Réf.</th><th>Mission</th><th>Priorité</th><th>Avancement</th><th>Échéance</th><th>Statut</th></tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="mission-id">#42</td>
-                        <td>Refonte Log-analyseur</td>
-                        <td class="prio p-high">Haute</td>
-                        <td><div class="bar"><i style="width:75%"></i></div></td>
-                        <td>10/06</td>
-                        <td><span class="status s-done">Terminé</span></td>
-                    </tr>
-                    <!-- Possibilité de rajouter des missions -->
-                    <tr>
-                        <td class="mission-id">#73</td>
-                        <td>Intégration API Redmine</td>
-                        <td class="prio p-high">Haute</td>
-                        <td><div class="bar"><i style="width:30%"></i></div></td>
-                        <td>25/06</td>
-                        <td><span class="status s-progress">En cours</span></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+    content.innerHTML = agents.length
+      ? agents.map(carteAgent).join('')
+      : '<div class="state">Aucune mission assignée trouvée.</div>';
 
-        <!-------- Autre Agent -------->
-
-        <div class="agent-card">
-            <div class="agent-head">
-                <div class="avatar">A-2</div>
-                <div class="agent-info">
-                    <h3>Agent 2</h3>
-                    <span>Cheffe de projet info</span>
-                </div>
-                <div class="agent-meta">
-                    <span class="badge-count">1 mission</span><br>
-                    <small>Charge : 18h/semaine</small>
-                </div>
-            </div>
-            <table>
-                <thead>
-                    <tr><th>Réf.</th><th>Mission</th><th>Priorité</th><th>Avancement</th><th>Échéance</th><th>Statut</th></tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="mission-id">#101</td>
-                        <td>Surveillance/apprentissage aux stagiaires</td>
-                        <td class="prio p-low">Basse</td>
-                        <td><div class="bar"><i style="width:80%"></i></div></td>
-                        <td>01/06</td>
-                        <td><span class="status s-progress">En cours</span></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </main>
-
-    <footer>easyRedmine · Vue agents / missions</footer>
+  } catch (e) {
+    content.innerHTML = `<div class="error"><strong>Impossible de charger les données.</strong><br>${e.message}</div>`;
+  }
+}
+charger();
+</script>
 </body>
 </html>
