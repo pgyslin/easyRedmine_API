@@ -1,9 +1,9 @@
 <?php
-/**
- * api-dashboard.php
- * Renvoie en JSON la liste des agents avec leurs missions assignées.
- * Appelé par le front (fetch). La clé API reste côté serveur.
- */
+
+  //api-dashboard.php
+  //Renvoie en JSON la liste des agents avec leurs missions assignées.
+  //Appelé par le front (fetch). La clé API reste côté serveur.
+ 
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -35,7 +35,7 @@ try {
         $agentId = $issue['assigned_to']['id'];
 
         $missionsByAgent[$agentId][] = [
-            'id'        => $issue['ids_'],
+            'id'        => $issue['id'],
             'sujet'     => $issue['subject'],
             'priorite'  => $issue['priority']['name']   ?? '—',
             'statut'    => $issue['status']['name']      ?? '—',
