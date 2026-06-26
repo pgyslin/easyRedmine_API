@@ -35,7 +35,7 @@ try {
         $agentId = $issue['assigned_to']['id'];
 
         $missionsByAgent[$agentId][] = [
-            'id'        => $issue['id'],
+            'id'        => $issue['ids_'],
             'sujet'     => $issue['subject'],
             'priorite'  => $issue['priority']['name']   ?? '—',
             'statut'    => $issue['status']['name']      ?? '—',
