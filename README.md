@@ -9,7 +9,7 @@ L'objectif est de faciliter la gestion des projets, des tâches et des utilisate
 
 ## Objectifs
 
-[x]: Interface graphique pour interagir avec l'API d'EasyRedmine  
+[X]: Interface graphique pour interagir avec l'API d'EasyRedmine  
 [ ]: Facilité la lecture des gestions de projets, des tâches et des utilisateurs  
 [ ]: Authentification sécurisée via l'API d'EasyRedmine (sans utiliser le nom d'utilisateur et le mot de passe et en utilisant le SSL)  
-[ ]: Réglages des erreurs et des exceptions pour une meilleure expérience utilisateur  
+[X]: Réglages des erreurs et des exceptions pour une meilleure expérience utilisateur  
