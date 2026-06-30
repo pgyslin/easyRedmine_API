@@ -49,7 +49,7 @@ class RedmineClient
         $ch = curl_init($url);
 
         $headers = [
-            'X-Redmine-API-Key: ' . $this->apiKey,
+            'd8dfdec2f5562746809135a03e87b6cf439f1541' . $this->apiKey,
             'Content-Type: application/json',
             'Accept: application/json',
         ];

@@ -7,7 +7,10 @@ L'objectif est de faciliter la gestion des projets, des tâches et des utilisate
 
 ## Objectifs
 
-- [X]: Interface graphique pour interagir avec l'API d'EasyRedmine  
-- [X]: Réglages des erreurs et des exceptions pour une meilleure expérience utilisateur  
-- [ ]: Facilité la lecture des gestions de projets, des tâches et des utilisateurs  
-- [ ]: Authentification sécurisée via l'API d'EasyRedmine (sans utiliser le nom d'utilisateur et le mot de passe et en utilisant le SSL)  
+- [X] : Créer un "site web" avec wampserver pour interagir avec l'API d'EasyRedmine  
+- [X] : Réglages des erreurs et des exceptions pour une meilleure expérience utilisateur  
+- [X] : Interface graphique pour interagir avec l'API d'EasyRedmine  
+- [non] : Interface utilisable pour voir/modifier les projets, les tâches et les utilisateurs  
+- [X] : Facilité la lecture des gestions de projets, des tâches et des utilisateurs  
+
+- [ ] : Authentification sécurisée via l'API d'EasyRedmine (sans utiliser le nom d'utilisateur et le mot de passe et en utilisant le SSL)  
