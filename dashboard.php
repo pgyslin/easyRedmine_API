@@ -1,23 +1,22 @@
 <?php
-/*
-  ============================================================
-   TABLEAU DE BORD INTERSCIENCE — Agents & Missions assignées
-   Version autonome, prête à l'emploi. Un seul fichier.
-  ============================================================
-*/
+
+//==============================================================
+//  TABLEAU DE BORD INTERSCIENCE — Agents & Missions assignées
+//==============================================================
+
 
 // ===================== CONFIGURATION =====================
 const REDMINE_URL = 'https://redmine.interlab15.com';            // SANS slash final
 const API_KEY     = '36888b38f8e7834191265a37d61296a75f5d3a0b';  // votre clé
-const DEBUG       = true;   // mettez true pour diagnostiquer, false en prod
+const DEBUG       = false;   // mettez true pour diagnostiquer, false en prod
 const PER_PAGE    = 100;    // tâches récupérées par requête (max 100 côté Redmine)
-const MAX_PAGES   = 20;     // garde-fou (20 x 100 = 2000 tâches max balayées normalement)
+const MAX_PAGES   = 20;     // garde-fou (20 x 100 = 2000 tâches max balayées, actuellement 1609 présentent, plus il y a de tâches plus ce sera lent)
 const OPEN_ONLY   = true;   // true = seulement les tâches ouvertes (comme votre vue)
 // ========================================================
 
 
 
-//  Appel GET à l'API Redmine, renvoie [data, httpCode, erreurCurl, urlAppelee].
+//  Appel GET à l'API Redmine, renvoie [data, httpCode, erreurCurl, urlAppellée].
 function redmineGet(string $path, array $params = []): array
 {
     $params['key'] = API_KEY;
@@ -26,9 +25,9 @@ function redmineGet(string $path, array $params = []): array
     $ch = curl_init($url);
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT        => 30,
+        CURLOPT_TIMEOUT        => 120,     // timeout en secondes (prends environ 40-50s pour tout afficher)  
         CURLOPT_FOLLOWLOCATION => true,   // suit les redirections
-        CURLOPT_SSL_VERIFYPEER => false,   // true = sécurisé, false = pas sécu
+        CURLOPT_SSL_VERIFYPEER => false,  // true = sécurisé/utilise le protocole SSL, false = pas sécu
         CURLOPT_HTTPHEADER     => [
             'X-Redmine-API-Key: ' . API_KEY, // double sécurité : header + param
             'Accept: application/json',
@@ -45,10 +44,10 @@ function redmineGet(string $path, array $params = []): array
     return [$data, $httpCode, $curlErr, $url, $body];
 }
 
-/*
-  Récupère TOUTES les tâches en paginant.
-  Retourne [tableau_taches, infos_debug].
- */
+
+//  Récupère ttes les tâches en paginant.
+//  Retourne [tableau_taches, infos_debug].
+
 function fetchAllIssues(): array
 {
     $all   = [];
@@ -93,10 +92,9 @@ function fetchAllIssues(): array
     return [$all, $debug];
 }
 
-/*
-  Regroupe les tâches par agent (destinataire).
-  Les tâches sans destinataire vont dans un groupe "Non assigné".
- */
+//Regroupe les tâches par agent (destinataire).
+// Les tâches sans destinataire vont dans un groupe "Non assigné".
+ 
 function groupByAgent(array $issues): array
 {
     $agents = [];
@@ -171,6 +169,7 @@ $totalMissions = count($issues);
   <div class="brand">
     <div class="logo">IS</div>
     <h1>Tableau de bord · InterScience</h1>
+     <a class="btn" href="index.html" >test</a>
   </div>
   <div class="stats">
     <div><div class="num"><?= $totalAgents ?></div><div class="lbl">Agents</div></div>
@@ -219,7 +218,7 @@ $totalMissions = count($issues);
           <span class="agent-name"><?= h($agent['name']) ?></span>
           <span class="badge"><?= count($agent['issues']) ?> mission<?= count($agent['issues'])>1?'s':'' ?></span>
         </div>
-        <div class="missions style="display:none">
+        <div class="missions" style="display:none">
           <?php foreach ($agent['issues'] as $iss): 
               $due = $iss['due_date'] ?? null;
               $late = $due && strtotime($due) < time();
