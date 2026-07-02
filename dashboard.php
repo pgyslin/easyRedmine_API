@@ -1,22 +1,18 @@
 <?php
+//  TABLEAU DE BORD INTERSCIENCE — Projets->Agents->Missions assignées
 
-//==============================================================
-//  TABLEAU DE BORD INTERSCIENCE — Agents & Missions assignées
-//==============================================================
-
-
-// ===================== CONFIGURATION =====================
-const REDMINE_URL = 'https://redmine.interlab15.com';            // SANS slash final
-const API_KEY     = '36888b38f8e7834191265a37d61296a75f5d3a0b';  // votre clé
-const DEBUG       = false;   // mettez true pour diagnostiquer, false en prod
-const PER_PAGE    = 100;    // tâches récupérées par requête (max 100 côté Redmine)
-const MAX_PAGES   = 20;     // garde-fou (20 x 100 = 2000 tâches max balayées, actuellement 1609 présentent, plus il y a de tâches plus ce sera lent)
-const OPEN_ONLY   = true;   // true = seulement les tâches ouvertes (comme votre vue)
-// ========================================================
+//===================== CONFIGURATION =====================
+const REDMINE_URL = 'https://redmine.interlab15.com';            //SANS slash final
+const API_KEY     = '36888b38f8e7834191265a37d61296a75f5d3a0b';  //votre clé
+const DEBUG       = false;  //true pour diagnostiquer, false en prod
+const PER_PAGE    = 100;    //tâches récupérées par requête (max 100 côté Redmine,si on met plus ça reste à 100 et prends juste plus de temps)
+const MAX_PAGES   = 20;     //garde-fou (20 x 100 = 2000 tâches max balayées, actuellement 1609 présentent, plus il y a de tâches plus ce sera lent)
+const OPEN_ONLY   = true;   //true = seulement les tâches ouvertes (comme votre vue)
+//========================================================
 
 
 
-//  Appel GET à l'API Redmine, renvoie [data, httpCode, erreurCurl, urlAppellée].
+//Appel GET à l'API Redmine, renvoie [data, httpCode, erreurCurl, urlAppellée].
 function redmineGet(string $path, array $params = []): array
 {
     $params['key'] = API_KEY;
@@ -25,11 +21,11 @@ function redmineGet(string $path, array $params = []): array
     $ch = curl_init($url);
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT        => 120,     // timeout en secondes (prends environ 40-50s pour tout afficher)  
-        CURLOPT_FOLLOWLOCATION => true,   // suit les redirections
-        CURLOPT_SSL_VERIFYPEER => false,  // true = sécurisé/utilise le protocole SSL, false = pas sécu
+        CURLOPT_TIMEOUT        => 120,     //timeout en secondes (prends environ 40-50s pour tout afficher)  
+        CURLOPT_FOLLOWLOCATION => true,    //suit les redirections
+        CURLOPT_SSL_VERIFYPEER => false,   //true = sécurisé/utilise le protocole SSL, false = pas sécu
         CURLOPT_HTTPHEADER     => [
-            'X-Redmine-API-Key: ' . API_KEY, // double sécurité : header + param
+            'X-Redmine-API-Key: ' . API_KEY, //double sécurité : header + param
             'Accept: application/json',
         ],
     ]);
@@ -45,8 +41,8 @@ function redmineGet(string $path, array $params = []): array
 }
 
 
-//  Récupère ttes les tâches en paginant.
-//  Retourne [tableau_taches, infos_debug].
+//Récupère ttes les tâches et projets en paginant.
+//$key = 'issues' ou 'projects' selon le type de requête.
 
 function fetchAllIssues(): array
 {
@@ -55,48 +51,85 @@ function fetchAllIssues(): array
     $offset = 0;
 
     for ($page = 0; $page < MAX_PAGES; $page++) {
-        $params = [
-            'offset'      => $offset,
-            'limit'       => PER_PAGE,
-            'status_id'   => OPEN_ONLY ? 'open' : '*',
-            'sort'        => 'updated_on:desc',
-        ];
+        $params = $baseParams + [
+            'offset' => $offset,
+            'limit'  => PER_PAGE];
+            [$data, $http, $err, $url, $raw] = redmineGet($path,$params);
 
-        [$data, $http, $err, $url, $raw] = redmineGet('/issues.json', $params);
-
-        // Log de debug pour CETTE page
+        //Log de debug pour CETTE page
         $debug[] = [
             'page'       => $page + 1,
             'url'        => preg_replace('/key=[^&]+/', 'key=***', $url),
             'http'       => $http,
             'curl_error' => $err,
-            'received'   => is_array($data) && isset($data['issues']) ? count($data['issues']) : 0,
+            'received'   => is_array($data) && isset($data[$key]) ? count($data[$key]) : 0,
             'total_count'=> is_array($data) && isset($data['total_count']) ? $data['total_count'] : 'n/a',
             'raw_snippet'=> $err || $http !== 200 ? substr((string)$raw, 0, 300) : null,
         ];
 
-        // Si erreur ou pas d'issues, on arrête
-        if ($http !== 200 || !is_array($data) || empty($data['issues'])) {
+        //Si erreur ou pas d'issues, on arrête
+        if ($http !== 200 || !is_array($data) || empty($data[$key])) {
             break;
         }
 
-        $all = array_merge($all, $data['issues']);
+        $all = array_merge($all, $data[$key]);
 
         $total = $data['total_count'] ?? count($all);
         $offset += PER_PAGE;
         if ($offset >= $total) {
-            break; // on a tout récupéré
+            break; //on a tout récupéré
         }
     }
 
-    return [$all, $debug];
+    return $all;
 }
 
-//Regroupe les tâches par agent (destinataire).
-// Les tâches sans destinataire vont dans un groupe "Non assigné".
- 
-function groupByAgent(array $issues): array
+
+//récupére les projets
+function fetchProject(array &$debug): array
 {
+    return fetchAllIssues('/projects.json', [], 'projects', $debug);
+}
+
+//récupére les membres des projets
+function fetchProjectMembers(int $projectId, array &$debug): array
+{
+    $rows = fetchAllIssues("/projects/$projectId/memberships.json", [], 'memberships', $debug);
+    $members = [];
+    foreach($rows as $m) {
+        if (isset($m['user']['id'])) {
+            $members[$m['user']['id']] = $m['user'];
+        }
+    }
+    returrn $members;
+}
+
+//récupére les tâches d'un projets
+function fetchProjectIssues(int $projectId, array &$debug): array
+{
+    $params = [
+        'project_id' => $projectId,
+        'status_id' => OPEN_ONLY ? 'open' : '*',
+        'sort' => 'updated_on:desc',
+    return fetchAll("/issues.json", $params, 'issues', $debug);
+}
+
+function h($s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
+
+$debugLog = [];
+$projects = fetchProject($debugLog);
+
+$tree = []; //struct d'affichage
+$totalMissions = 0;
+$agentsIds = []; //pour compter les agents distincts
+
+//dans chaque groupe
+foreach ($projects as $proj) {
+    $pid = (int)$proj['id'];
+    $pname = $proj['name'];
+
+    //Regroupe les tâches par agent (destinataire).
+    //Les tâches sans destinataire vont dans un groupe "Non assigné"
     $agents = [];
     foreach ($issues as $iss) {
         if (isset($iss['assigned_to']['id'])) {
@@ -110,15 +143,22 @@ function groupByAgent(array $issues): array
             $agents[$aid] = ['id' => $aid, 'name' => $aname, 'issues' => []];
         }
         $agents[$aid]['issues'][] = $iss;
+        if ($aid !== 0) {
+            $agentsIds[$aid] = true; //pour compter les agents distincts
+        }
     }
-    // Tri : plus de tâches d'abord
+
+
+
+
+    //Tri : plus de tâches d'abord
     uasort($agents, fn($a, $b) => count($b['issues']) <=> count($a['issues']));
     return $agents;
 }
 
 function h($s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 
-// ===================== EXÉCUTION =====================
+//html 
 [$issues, $debugLog] = fetchAllIssues();
 $agents = groupByAgent($issues);
 
@@ -216,10 +256,10 @@ $totalMissions = count($issues);
       <div class="agent">
         <div class="agent-head" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display==='none'?'block':'none'">
           <span class="agent-name"><?= h($agent['name']) ?></span>
-          <span class="badge"><?= count($agent['issues']) ?> mission<?= count($agent['issues'])>1?'s':'' ?></span>
+          <span class="badge"><?= count($agent[$key]) ?> mission<?= count($agent[$key])>1?'s':'' ?></span>
         </div>
         <div class="missions" style="display:none">
-          <?php foreach ($agent['issues'] as $iss): 
+          <?php foreach ($agent[$key] as $iss): 
               $due = $iss['due_date'] ?? null;
               $late = $due && strtotime($due) < time();
           ?>
