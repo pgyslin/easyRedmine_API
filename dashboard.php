@@ -143,17 +143,44 @@ foreach ($projects as $proj) {
             $agents[$aid] = ['id' => $aid, 'name' => $aname, 'issues' => []];
         }
         $agents[$aid]['issues'][] = $iss;
-        if ($aid !== 0) {
+        if ($aid !== 0) 
+        {
             $agentsIds[$aid] = true; //pour compter les agents distincts
         }
     }
 
-
+    //Pour les membres sans tâches assignées 
+    //À enlever/commenter si on ne veut pas les lister
+    foreach ($members as $mid => $m) {
+        if (!isset($agents[$mid])) {
+            $agents[$mid] = ['id' => $mid, 'name' => $m['name'], 'issues' => []];
+        }
+        $agentsIds[$mid] = true;
+    }
 
 
     //Tri : plus de tâches d'abord
     uasort($agents, fn($a, $b) => count($b['issues']) <=> count($a['issues']));
-    return $agents;
+    $totalMissions += count($issues);
+
+    //projetc vide 
+    if (!empty($agents)) {
+        $tree[] = [
+            'id' => $pid,
+            'name' => $pname, 
+            'agents' => $agents,
+            'count' => count($issues),
+        ];
+    }
+}
+
+
+
+
+
+
+
+
 }
 
 function h($s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
